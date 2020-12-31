@@ -1,0 +1,78 @@
+#+TITLE: Notes
+
+* Mastering Advancec Scala
+** Chapter 3, Exploring Cats
+*** Free monads
+One the free monad Algebra is defined, we need three things:
+- a free monad type for the /ActionA/
+- a set of /smart constructors/ for building free monad instances
+- one or several interpreters that can actually run the program
+  
+  
+**** Interpreter
+the goal of the interpreter is the natural transformation:
+    ActionA ~> M
+    equivalantly, we need to get from type constructor
+        ActionA[_]  to type constructor M[_]
+***** Natural Transformations can be defined using trait *cats.arrow.functionK
+*** Applicative 
+*** Validate
+** Dealing with side effects
+*** cats io monad
+cats-effects
+#+begin_src scala
+object IO {
+/**
+ ,* delays computation, creates an IO instane that can be executed on the current thread
+,**/
+  def apply[A](body: => A): IO[A] 
+/**
+ ,* like Future(42)
+,**/
+  def pure(a: A): IO(a)
+/**
+ ,* async
+,**/
+  def async[A](k: Either[Throwable, A] => Unit) => Unit): IO[A]
+}
+#+end_src
+*** Thread shifting
+/ContextShift/ is an abstraction over thread pool. Its implementation is:
+#+begin_src scala
+trait ContextShift[IO] {
+  def shift: IO[Unit] //shifts exectuion to the current thread
+/**
+ ,* used when need to run on a specific thread
+**/
+  def evalOn[A](ec: ExecutionContexts)(fa: IO[A]): IO[A] 
+    }
+#+end_src 
+*** Iteratees
+Essentially every iteratee is based on three concepts:
+- iteratees
+- enumeratees
+- enumerators
+**** enumerators
+Enumerators are data producers
+**** iteratees
+Iteratees are data cosnumers
+**** enumeratees
+Enumerators are data transformers
+** Optics
+*** Prism
+Sometime we have a function A => B that is not defined for all A, at the same time, the reverse function, B => A existes and is defined for all Bs. This is /relaxed isomorphism/
+#+begin_src scala
+case class Prism[A, B](
+    getOption: A => Option[B],
+    reverseGet: B => A
+ )
+ #+end_src
+ 
+*** Lens
+Lens is defined as 2 functions, /get, set/:
+#+begin_src scala
+case class Lens[S, A]
+    get: S => A
+    reverseGet: B => A
+ }
+ #+end_src
